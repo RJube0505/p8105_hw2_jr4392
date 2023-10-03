@@ -9,6 +9,8 @@ output: github_document
 library(tidyverse)
 library(readxl)
 ```
+
+##Problem 1
 ```{r}
 month_df = 
   tibble(
@@ -19,10 +21,70 @@ month_df =
 
 pols = 
   read_csv("./fivethirtyeight_datasets/pols-month.csv") |>
-  separate(mon, into = c('year','month_num','day'), convert = TRUE) |>
+  separate(mon, into = c("year", "month_num", "day"), convert = TRUE) |>
   mutate(
     president = recode(prez_gop, "0" = "dem", "1" = "gop", "2" = "gop")) |>
+  left_join(x = _, y = month_df) |>
+  select(year, month, everything(), -day, -prez_dem, -prez_gop)
+```
+
+```{r}
+snp = 
+  read_csv("./fivethirtyeight_datasets/snp.csv") |>
+  separate(date, into = c("month", "day", "year"), convert = TRUE) |>
+  arrange(year, month) |>
+  select(year, month, close) |>
+  mutate(year = ifelse(year >= 50, 1900 + year, 2000+ year)) |>
+  mutate(month = month.name[month])
+```
+
+```{r}
+unemployment = 
+  read_csv("./fivethirtyeight_datasets/unemployment.csv") |>
+  rename(year = Year) |>
+  pivot_longer(
+    Jan:Dec, 
+    names_to = "month_abb",
+    values_to = "unemployment"
+  ) |> 
   left_join(x = _, y = month_df) |> 
-  select(year, month, everything(), -day, -prez_dem, -prez_gop) 
+  select(year, month, unemployment)
+```
+
+```{r}
+data_538 = 
+  left_join(pols, snp) |>
+  left_join(x = _, y = unemployment)
+```
+
+## Problem 2
+```{r}
+trash_data = read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = 1) |> 
+  janitor::clean_names() |>
+  head(-1) |>
+    mutate(
+    homes_powered = weight_tons * 500 / 30)
+
+```
+
+```{r}
+professor_data = read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = 2) |>
+  janitor::clean_names() |>
+    head(-1) |>
+    mutate(
+    homes_powered = weight_tons * 500 / 30)
+```
+
+```{r}
+gwynnda_data = read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = 4) |> 
+  janitor::clean_names() |>
+  head(-2) |>
+  mutate(
+    homes_powered = weight_tons * 500 / 30)
+```
+
+```{r}
+merge_trash_wheel_data = 
+  bind_rows(trash_data, professor_data, gwynnda_data)
 ```
 
