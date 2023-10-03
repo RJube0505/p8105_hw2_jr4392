@@ -59,32 +59,77 @@ data_538 =
 
 ## Problem 2
 ```{r}
-trash_data = read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = 1) |> 
-  janitor::clean_names() |>
+trash_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = 1) |>
+    janitor::clean_names() |>
+    select(-x15, -x16)|>
   head(-1) |>
     mutate(
-    homes_powered = weight_tons * 500 / 30)
-
+    homes_powered = weight_tons * 500 / 30) |>
+   mutate(year = numeric_version(year))
 ```
 
 ```{r}
-professor_data = read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = 2) |>
+professor_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = 2) |>
   janitor::clean_names() |>
     head(-1) |>
     mutate(
-    homes_powered = weight_tons * 500 / 30)
+    homes_powered = weight_tons * 500 / 30) |>
+    mutate(year = numeric_version(year))
 ```
 
 ```{r}
-gwynnda_data = read_excel("./data/202207 Trash Wheel Collection Data.xlsx", sheet = 4) |> 
+gwynnda_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = 4) |> 
   janitor::clean_names() |>
   head(-2) |>
   mutate(
-    homes_powered = weight_tons * 500 / 30)
+    homes_powered = weight_tons * 500 / 30) |>
+    mutate(year = numeric_version(year))
 ```
 
 ```{r}
 merge_trash_wheel_data = 
   bind_rows(trash_data, professor_data, gwynnda_data)
 ```
+The total weight of trash collected by Professor Trash Wheel is 190.12, the total number of cigarette butts collected by Gwynnda in July of 2021 is 16,300.
 
+## Problem 3
+```{r}
+baseline_df = 
+  read_csv("./data_mci/MCI_baseline.csv", skip = 1) |>
+  janitor::clean_names() |> 
+  mutate(
+    sex = 
+      case_match(
+        sex, 
+        0 ~ "male", 
+        1 ~ "female"),
+    sex = as.factor(sex), 
+    apoe4 = 
+      case_match(
+        apoe4, 
+        0 ~ "APOE4 non-carrier",
+        1 ~ "APOE4 carrier"),
+    apoe4 = as.factor(apoe4) ) 
+
+mci_baseline_df = 
+  baseline_df |>
+  mutate(age_at_onset = as.numeric(age_at_onset)) |>
+  filter(age_at_onset > current_age | is.na(age_at_onset))
+```
+
+```{r}
+amyloid_df = 
+  read_csv("./data_mci/mci_amyloid.csv", skip = 1) |>
+  janitor::clean_names() |>
+  rename(id  = study_id)
+```
+
+```{r}
+anti_join(mci_baseline_df, amyloid_df, by = "id")
+```
+
+```{r}
+combination_df = 
+  inner_join(mci_baseline_df, amyloid_df, by = "id")
+write_csv(combination_df,"./data/mci_combination_df.csv")
+```
