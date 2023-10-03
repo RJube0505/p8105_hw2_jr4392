@@ -65,7 +65,7 @@ trash_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet 
   head(-1) |>
     mutate(
     homes_powered = weight_tons * 500 / 30) |>
-   mutate(year = numeric_version(year)) |>
+   mutate(year = as.numeric(year)) |>
   mutate(Trash_Wheel = "Mr. Trash Wheel")
 ```
 The dataset `trash_data` has `r nrow(trash_data)` observations and `r ncol(trash_data)` variables. The `weight_tons` is the weight of trash in tons. The `homes_powered` is calculated by trash `weight_tons`. On the `r trash_data$date[1]`, dumpster `r trash_data$dumpster[1]` has `r trash_data$weight_tons[1]` tons of trash, which could power average `r trash_data$homes_powered[1]` homes.
@@ -76,7 +76,7 @@ professor_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sh
     head(-1) |>
     mutate(
     homes_powered = weight_tons * 500 / 30) |>
-    mutate(year = numeric_version(year)) |>
+    mutate(year = as.numeric(year)) |>
    mutate(Trash_Wheel = "Professor Trash Wheel")
 sum(professor_data$weight_tons)
 ```
@@ -89,7 +89,7 @@ gwynnda_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", shee
   head(-2) |>
   mutate(
     homes_powered = weight_tons * 500 / 30) |>
-    mutate(year = numeric_version(year)) |>
+    mutate(year = as.numeric(year)) |>
    mutate(Trash_Wheel = "Gwynnda Trash Wheel")
 sum(filter(gwynnda_data, month == "July" & year == 2021)$cigarette_butts)
 ```
