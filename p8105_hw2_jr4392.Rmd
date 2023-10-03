@@ -65,8 +65,10 @@ trash_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet 
   head(-1) |>
     mutate(
     homes_powered = weight_tons * 500 / 30) |>
-   mutate(year = numeric_version(year))
+   mutate(year = numeric_version(year)) |>
+  mutate(Trash_Wheel = "Mr. Trash Wheel")
 ```
+The dataset `trash_data` has `r nrow(trash_data)` observations and `r ncol(trash_data)` variables. The `weight_tons` is the weight of trash in tons. The `homes_powered` is calculated by trash `weight_tons`. On the `r trash_data$date[1]`, dumpster `r trash_data$dumpster[1]` has `r trash_data$weight_tons[1]` tons of trash, which could power average `r trash_data$homes_powered[1]` homes.
 
 ```{r}
 professor_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = 2) |>
@@ -74,8 +76,12 @@ professor_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sh
     head(-1) |>
     mutate(
     homes_powered = weight_tons * 500 / 30) |>
-    mutate(year = numeric_version(year))
+    mutate(year = numeric_version(year)) |>
+   mutate(Trash_Wheel = "Professor Trash Wheel")
+sum(professor_data$weight_tons)
 ```
+
+The dataset `professor_data` has `r nrow(professor_data)` observations and `r ncol(professor_data)` variables. The total weight of trash collected by Professor Trash Wheel is 216.26 tons.
 
 ```{r}
 gwynnda_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", sheet = 4) |> 
@@ -83,14 +89,19 @@ gwynnda_data = read_excel("./data/202309 Trash Wheel Collection Data.xlsx", shee
   head(-2) |>
   mutate(
     homes_powered = weight_tons * 500 / 30) |>
-    mutate(year = numeric_version(year))
+    mutate(year = numeric_version(year)) |>
+   mutate(Trash_Wheel = "Gwynnda Trash Wheel")
+sum(filter(gwynnda_data, month == "July" & year == 2021)$cigarette_butts)
 ```
+
+The dataset `gwynnda_data` has `r nrow(gwynnda_data)` observations and `r ncol(gwynnda_data)` variables. The total number of cigarette butts collected by Gwynnda in July of 2021 is 16,300.
 
 ```{r}
 merge_trash_wheel_data = 
   bind_rows(trash_data, professor_data, gwynnda_data)
 ```
-The total weight of trash collected by Professor Trash Wheel is 190.12, the total number of cigarette butts collected by Gwynnda in July of 2021 is 16,300.
+
+The combined dataset `merge_trash_wheel_data` has `r nrow(merge_trash_wheel_data)` observations and `r ncol(merge_trash_wheel_data)` variables.
 
 ## Problem 3
 ```{r}
@@ -101,8 +112,8 @@ baseline_df =
     sex = 
       case_match(
         sex, 
-        0 ~ "male", 
-        1 ~ "female"),
+        0 ~ "female", 
+        1 ~ "male"),
     sex = as.factor(sex), 
     apoe4 = 
       case_match(
@@ -115,7 +126,14 @@ mci_baseline_df =
   baseline_df |>
   mutate(age_at_onset = as.numeric(age_at_onset)) |>
   filter(age_at_onset > current_age | is.na(age_at_onset))
+
+mean(mci_baseline_df$current_age)
+nrow(filter(mci_baseline_df,sex == "female" & apoe4 == "APOE4 carrier"))/nrow(filter(mci_baseline_df,sex == "female"))*100
 ```
+
+The dataset has `r nrow(baseline_df)` observations and `r ncol(baseline_df)` variables. Each observation has an id number, age at the study baseline, sex, education, apoe4 carrier or non_carrier, and age at the onset of MCI. In the process of importing `baseline_df`,the first line is skipped and make the second line as the header. Sex and apoe4 values are changed to character with explanation instead of numbers(factors). In `mci_baseline_df`, data for no MCI people is removed.
+
+`r nrow(baseline_df)` participants were recruited, of these, `r nrow(mci_baseline_df)` develop MCI. The average baseline age is 65.0286. The proportion of women in the study are APOE4 carriers is 30%.
 
 ```{r}
 amyloid_df = 
@@ -124,12 +142,18 @@ amyloid_df =
   rename(id  = study_id)
 ```
 
+The dataset has `r nrow(amyloid_df)` observations and `r ncol(amyloid_df)` variables. In the process of importing `amyloid_df`,the first line is skipped and make the second line as the header.
+
 ```{r}
 anti_join(mci_baseline_df, amyloid_df, by = "id")
 ```
+
+By using anti_join(), only 8 observations appear in both datasets are retained.
 
 ```{r}
 combination_df = 
   inner_join(mci_baseline_df, amyloid_df, by = "id")
 write_csv(combination_df,"./data/mci_combination_df.csv")
 ```
+
+The combination  dataset has `r nrow(combination_df)` observations and `r ncol(combination_df)` variables.
